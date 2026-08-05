@@ -1,0 +1,24 @@
+{
+  "name": "StudyOS — il tuo sistema di studio",
+  "short_name": "StudyOS",
+  "description": "Piano giornaliero, ripassi, esercizi e simulazioni per organizzare lo studio universitario.",
+  "lang": "it-IT",
+  "dir": "ltr",
+  "start_url": "/oggi",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F7F4EE",
+  "theme_color": "#4C6382",
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Piano di oggi", "url": "/oggi" },
+    { "name": "Ripassi", "url": "/ripassi" },
+    { "name": "Esami", "url": "/esami" }
+  ]
+}

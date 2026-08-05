@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Palette StudyOS
+  - blu ardesia   → colore principale
+  - azzurro polvere → elementi secondari
+  - ocra caldo     → evidenziazioni
+  - beige chiaro   → sfondi
+  - antracite      → testi e modalità scura
+*/
+
+@layer base {
+  :root {
+    --background: 40 33% 96%;
+    --foreground: 210 12% 16%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 12% 16%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 12% 16%;
+
+    --primary: 213 27% 40%;
+    --primary-foreground: 40 33% 98%;
+
+    --secondary: 207 30% 88%;
+    --secondary-foreground: 213 27% 28%;
+
+    --accent: 36 44% 51%;
+    --accent-foreground: 40 33% 98%;
+
+    --muted: 40 20% 92%;
+    --muted-foreground: 210 8% 42%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 14% 86%;
+    --input: 210 14% 86%;
+    --ring: 213 27% 45%;
+
+    --risk-green: 152 42% 35%;
+    --risk-yellow: 43 78% 40%;
+    --risk-orange: 27 74% 44%;
+    --risk-red: 0 62% 45%;
+    --risk-gray: 210 8% 50%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 210 14% 12%;
+    --foreground: 40 20% 94%;
+
+    --card: 210 14% 16%;
+    --card-foreground: 40 20% 94%;
+
+    --popover: 210 14% 16%;
+    --popover-foreground: 40 20% 94%;
+
+    --primary: 207 45% 68%;
+    --primary-foreground: 210 20% 12%;
+
+    --secondary: 210 14% 24%;
+    --secondary-foreground: 40 20% 94%;
+
+    --accent: 36 50% 60%;
+    --accent-foreground: 210 20% 12%;
+
+    --muted: 210 14% 20%;
+    --muted-foreground: 210 10% 68%;
+
+    --destructive: 0 55% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 12% 26%;
+    --input: 210 12% 26%;
+    --ring: 207 45% 62%;
+
+    --risk-green: 152 40% 55%;
+    --risk-yellow: 43 70% 58%;
+    --risk-orange: 27 70% 60%;
+    --risk-red: 0 60% 62%;
+    --risk-gray: 210 8% 62%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  /* Accessibilità: focus sempre visibile da tastiera */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Testo visibile solo agli screen reader */
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+}
