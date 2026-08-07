@@ -23,13 +23,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { EmptyState } from '@/components/shared/empty-state';
 import { ConfirmButton } from '@/components/shared/confirm-button';
 import {
-  ALLOWED_MIME_TYPES,
-  MAX_FILE_SIZE,
   createResourceAction,
   deleteResourceAction,
   getResourceUrlAction,
   updateResourceTopicsAction,
 } from '@/server/actions/resources';
+import { ACCEPT_ATTRIBUTE, MAX_FILE_SIZE, isAllowedMimeType } from '@/lib/uploads';
 import { createClient } from '@/lib/supabase/client';
 import type { ResourceType } from '@/types/db';
 
@@ -126,7 +125,7 @@ export function ResourceLibrary({
         toast.error('Il file supera il limite di 50 MB.');
         return;
       }
-      if (file.type && !ALLOWED_MIME_TYPES.includes(file.type)) {
+      if (file.type && !isAllowedMimeType(file.type)) {
         toast.error('Tipo di file non consentito.');
         return;
       }
@@ -259,7 +258,7 @@ export function ResourceLibrary({
               <Input
                 id="res-file"
                 type="file"
-                accept={ALLOWED_MIME_TYPES.join(',')}
+                accept={ACCEPT_ATTRIBUTE}
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               />
               <p className="text-xs text-muted-foreground">

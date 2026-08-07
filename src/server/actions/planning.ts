@@ -8,6 +8,7 @@ import {
   getDueReviews,
   getExamOverviews,
   getProfile,
+  getSegments,
   getTasksBetween,
   getUnavailableDates,
 } from '@/server/data';
@@ -15,7 +16,7 @@ import { generatePlan, suggestedHorizon } from '@/lib/domain/planner';
 import { buildCapacityCalendar } from '@/lib/domain/availability';
 import { rescheduleTasks, type ReschedulableTask } from '@/lib/domain/reschedule';
 import { addDaysIso, todayIso } from '@/lib/domain/dates';
-import type { PlannerExamInput } from '@/lib/domain/types';
+import type { MaterialRef, PlannerExamInput } from '@/lib/domain/types';
 
 export interface PlanResult {
   ok: boolean;
@@ -42,16 +43,57 @@ export async function generatePlanAction(): Promise<PlanResult> {
   if (!profile) return { ok: false, message: 'Profilo non trovato.' };
 
   const today = todayIso(profile.timezone);
-  const [overviews, availability, unavailable, backlog, dueReviews] = await Promise.all([
+  const [overviews, availability, unavailable, backlog, dueReviews, segments] = await Promise.all([
     getExamOverviews(user.id, { today }),
     getAvailability(user.id),
     getUnavailableDates(user.id, today),
     getBacklogTasks(user.id, today),
     getDueReviews(user.id, today, 60),
+    getSegments(user.id),
   ]);
+
+  // Materiale collegato agli argomenti: permette attività «slide 45-72».
+  const materialByTopic = new Map<string, MaterialRef>();
+  for (const segment of segments) {
+    if (!segment.topic_id || segment.kind === 'riferimento') continue;
+    const resource = segment.resource;
+    const label =
+      resource?.lecture_number !== null && resource?.lecture_number !== undefined
+        ? `L${String(resource.lecture_number).padStart(2, '0')}`
+        : (resource?.title ?? 'Materiale');
+    materialByTopic.set(segment.topic_id, {
+      resourceId: segment.resource_id,
+      segmentId: segment.id,
+      resourceLabel: label.slice(0, 60),
+      pageStart: segment.page_start,
+      pageEnd: segment.page_end,
+      unit: resource?.type === 'pdf' ? 'slide' : 'pagine',
+    });
+  }
 
   if (overviews.length === 0) {
     return { ok: false, message: 'Aggiungi almeno un esame prima di generare il piano.' };
+  }
+
+  /*
+   * Un piano è credibile solo se nasce dal materiale vero.
+   * Gli esami senza slide caricate vengono esclusi: pianificare argomenti
+   * senza sapere quante pagine sono e quanto pesano produce stime inventate.
+   */
+  const examsWithMaterial = new Set(
+    segments.filter((segment) => segment.kind !== 'riferimento').map((segment) => segment.exam_id),
+  );
+
+  const senzaMateriale = overviews
+    .filter((overview) => !examsWithMaterial.has(overview.exam.id))
+    .map((overview) => overview.exam.short_name ?? overview.exam.name);
+
+  if (examsWithMaterial.size === 0) {
+    return {
+      ok: false,
+      message:
+        'Per pianificare serve il materiale: apri un esame, vai su «Materiale» e carica le slide. Da lì nascono gli argomenti e le stime di tempo reali.',
+    };
   }
 
   const backlogByExam = new Map<string, number>();
@@ -59,20 +101,34 @@ export async function generatePlanAction(): Promise<PlanResult> {
     backlogByExam.set(task.exam_id, (backlogByExam.get(task.exam_id) ?? 0) + task.planned_minutes);
   }
 
-  const examInputs: PlannerExamInput[] = overviews.map((overview) => {
+  const examInputs: PlannerExamInput[] = overviews
+    .filter((overview) => examsWithMaterial.has(overview.exam.id))
+    .map((overview) => {
     const pendingTopics = overview.topics
       .filter((topic) => topic.status !== 'consolidato')
       .sort((a, b) => a.position - b.position)
       .map((topic) => ({
         id: topic.id,
         title: topic.title,
+        /*
+         * Tempo residuo: parte dalla stima sulle pagine reali, scala con la
+         * padronanza già raggiunta e viene corretto dalla difficoltà misurata
+         * sul contenuto (se il materiale è stato analizzato).
+         */
         estimatedMinutes: Math.max(
           15,
-          Math.round(topic.estimated_minutes * (1 - Number(topic.mastery))),
+          Math.round(
+            topic.estimated_minutes *
+              (1 - Number(topic.mastery)) *
+              (topic.content_difficulty
+                ? 0.85 + (topic.content_difficulty - 3) * 0.12
+                : 1),
+          ),
         ),
-        difficulty: topic.difficulty,
+        difficulty: topic.content_difficulty ?? topic.difficulty,
         status: topic.status,
         blockedBy: [] as string[],
+        material: materialByTopic.get(topic.id),
       }));
 
     return {
@@ -167,6 +223,10 @@ export async function generatePlanAction(): Promise<PlanResult> {
     status: 'pianificata' as const,
     priority_score: task.priorityScore,
     priority_explanation: task.priorityExplanation,
+    resource_id: task.material?.resourceId ?? null,
+    segment_id: task.material?.segmentId ?? null,
+    page_start: task.material?.pageStart ?? null,
+    page_end: task.material?.pageEnd ?? null,
   }));
 
   for (let i = 0; i < rows.length; i += 200) {
@@ -183,11 +243,18 @@ export async function generatePlanAction(): Promise<PlanResult> {
 
   revalidateAll();
 
+  const warnings = [...plan.warnings];
+  if (senzaMateriale.length > 0) {
+    warnings.push(
+      `${senzaMateriale.length === 1 ? 'Escluso dal piano' : 'Esclusi dal piano'}: ${senzaMateriale.join(', ')}. Carica le slide dalla scheda Materiale per includerli.`,
+    );
+  }
+
   return {
     ok: true,
     created: rows.length,
-    warnings: plan.warnings,
-    message: `Piano aggiornato: ${rows.length} attività nei prossimi ${horizon} giorni.`,
+    warnings,
+    message: `Piano aggiornato: ${rows.length} attività su ${examsWithMaterial.size} ${examsWithMaterial.size === 1 ? 'materia' : 'materie'} nei prossimi ${horizon} giorni.`,
   };
 }
 

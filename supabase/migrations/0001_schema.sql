@@ -1,5 +1,5 @@
 -- ============================================================================
--- StudyOS — 0001_schema.sql
+-- StudyAI — 0001_schema.sql
 -- Schema principale: estensioni, enum, tabelle, vincoli, indici, trigger.
 -- Convenzioni:
 --   * chiavi primarie UUID (gen_random_uuid)
@@ -169,7 +169,7 @@ create table if not exists public.exams (
   initial_level int not null default 1 check (initial_level between 1 and 5),
   status exam_status not null default 'non_iniziato',
   priority int not null default 3 check (priority between 1 and 5),
-  color text not null default '#4C6382',
+  color text not null default '#1E3C5A',
   estimated_hours numeric(6,1) check (estimated_hours >= 0),
   target_date date,
   notes text,

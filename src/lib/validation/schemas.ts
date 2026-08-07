@@ -50,6 +50,7 @@ export const examSchema = z.object({
   initialLevel: z.coerce.number().int().min(1).max(5),
   priority: z.coerce.number().int().min(1).max(5),
   estimatedHours: z.coerce.number().min(0).max(1000).optional(),
+  icon: z.string().trim().max(40).default('book-open'),
   notes: z.string().trim().max(2000).optional().or(z.literal('')),
 });
 
@@ -147,6 +148,8 @@ export const sessionCompletionSchema = z.object({
   difficulties: z.string().trim().max(2000).optional().or(z.literal('')),
   doubts: z.string().trim().max(2000).optional().or(z.literal('')),
   nextReviewDays: z.coerce.number().int().min(0).max(60).optional(),
+  /** Pagine/slide realmente coperte: serve a tarare il ritmo di studio. */
+  pagesCovered: z.coerce.number().int().min(0).max(5000).optional(),
   addError: z.boolean().default(false),
   errorText: z.string().trim().max(2000).optional().or(z.literal('')),
 });

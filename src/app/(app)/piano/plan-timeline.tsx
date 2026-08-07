@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { moveTaskAction } from '@/server/actions/planning';
 import { formatItalianDate, formatMinutes } from '@/lib/domain/dates';
 import type { ActivityType, IsoDate, TaskStatus } from '@/lib/domain/types';
+import { ExamIcon } from '@/lib/exam-icons';
 
 interface PlanTask {
   id: string;
@@ -48,7 +49,7 @@ export function PlanTimeline({
 }: {
   tasks: PlanTask[];
   capacity: CapacityDay[];
-  exams: Record<string, { name: string; color: string }>;
+  exams: Record<string, { name: string; color: string; icon: string }>;
   today: IsoDate;
 }) {
   const router = useRouter();
@@ -127,10 +128,10 @@ export function PlanTimeline({
                         className="flex cursor-grab flex-wrap items-center justify-between gap-2 rounded-md border bg-background p-2 text-sm"
                       >
                         <span className="flex min-w-0 items-center gap-2">
-                          <span
-                            className="h-2.5 w-2.5 shrink-0 rounded-full"
-                            style={{ backgroundColor: exams[task.examId]?.color ?? '#4C6382' }}
-                            aria-hidden
+                          <ExamIcon
+                            icon={exams[task.examId]?.icon}
+                            color={exams[task.examId]?.color}
+                            size={15}
                           />
                           <span className="truncate">{task.title}</span>
                           <Badge variant="muted">{ACTIVITY_LABELS[task.activityType]}</Badge>

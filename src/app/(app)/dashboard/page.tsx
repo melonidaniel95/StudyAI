@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GeneratePlanButton } from '@/components/plan/generate-plan-button';
 import { percent } from '@/lib/utils';
+import { ExamIcon } from '@/lib/exam-icons';
 
 export const metadata: Metadata = { title: 'Dashboard' };
 export const dynamic = 'force-dynamic';
@@ -134,11 +135,7 @@ export default async function DashboardPage() {
                     href={`/esami/${overview.exam.id}`}
                     className="flex min-w-0 items-center gap-2 hover:underline"
                   >
-                    <span
-                      className="h-2.5 w-2.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: overview.exam.color }}
-                      aria-hidden
-                    />
+                    <ExamIcon icon={overview.exam.icon} color={overview.exam.color} size={15} />
                     <span className="truncate">{overview.exam.short_name ?? overview.exam.name}</span>
                   </Link>
                   <span className="flex shrink-0 items-center gap-2">

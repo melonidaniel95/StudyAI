@@ -40,6 +40,8 @@ export async function startSessionAction(taskId: string): Promise<SessionActionR
     topic_id: string | null;
     planned_minutes: number;
     activity_type: string;
+    resource_id: string | null;
+    segment_id: string | null;
   };
 
   // Se esiste già una sessione aperta per questa attività la si riutilizza.
@@ -64,6 +66,8 @@ export async function startSessionAction(taskId: string): Promise<SessionActionR
       topic_id: task.topic_id,
       activity_type: task.activity_type,
       planned_minutes: task.planned_minutes,
+      resource_id: task.resource_id,
+      segment_id: task.segment_id,
     })
     .select('id')
     .single();
@@ -127,6 +131,7 @@ export async function completeSessionAction(
     difficulties: formData.get('difficulties') ?? '',
     doubts: formData.get('doubts') ?? '',
     nextReviewDays: formData.get('nextReviewDays') ?? undefined,
+    pagesCovered: formData.get('pagesCovered') ?? undefined,
     addError: formData.get('addError') === 'true',
     errorText: formData.get('errorText') ?? '',
   });
@@ -149,6 +154,7 @@ export async function completeSessionAction(
     task_id: string | null;
     exam_id: string;
     topic_id: string | null;
+    segment_id: string | null;
   };
 
   const profile = await getProfile(user.id);
@@ -167,9 +173,40 @@ export async function completeSessionAction(
       difficulties: input.difficulties || null,
       doubts: input.doubts || null,
       next_review_days: input.nextReviewDays ?? null,
+      pages_covered: input.pagesCovered ?? null,
     })
     .eq('id', session.id)
     .eq('user_id', user.id);
+
+  // Avanzamento del materiale: le pagine coperte alimentano la taratura del ritmo.
+  if (session.segment_id && input.pagesCovered && input.pagesCovered > 0) {
+    const { data: segmentRow } = await supabase
+      .from('resource_segments')
+      .select('id, pages_done, page_start, page_end, actual_minutes')
+      .eq('id', session.segment_id)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (segmentRow) {
+      const segment = segmentRow as {
+        id: string;
+        pages_done: number;
+        page_start: number;
+        page_end: number;
+        actual_minutes: number;
+      };
+      const total = segment.page_end - segment.page_start + 1;
+      await supabase
+        .from('resource_segments')
+        .update({
+          pages_done: Math.min(total, segment.pages_done + input.pagesCovered),
+          actual_minutes: segment.actual_minutes + input.effectiveMinutes,
+          is_draft: false,
+        })
+        .eq('id', segment.id)
+        .eq('user_id', user.id);
+    }
+  }
 
   if (session.task_id) {
     await supabase

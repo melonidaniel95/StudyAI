@@ -1,4 +1,4 @@
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 /** Percorsi accessibili senza autenticazione. */
@@ -33,7 +33,13 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
+      /*
+       * Il parametro è tipato esplicitamente e non lasciato all'inferenza:
+       * versioni diverse di @supabase/ssr descrivono questa callback in modo
+       * leggermente diverso, e con `noImplicitAny` la build fallirebbe su
+       * quelle in cui il tipo non viene dedotto.
+       */
+      setAll(cookiesToSet: Array<{ name: string; value: string; options?: CookieOptions }>) {
         for (const { name, value } of cookiesToSet) {
           request.cookies.set(name, value);
         }

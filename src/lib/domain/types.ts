@@ -1,5 +1,5 @@
 /**
- * Tipi del dominio StudyOS.
+ * Tipi del dominio StudyAI.
  *
  * Questo modulo è volutamente indipendente da React, da Next.js e da Supabase:
  * contiene solo strutture dati e viene usato dalle funzioni pure in `lib/domain`,
@@ -159,6 +159,8 @@ export interface PlannerExamInput {
     status: TopicStatus;
     /** Prerequisiti (id di altri argomenti) non ancora completati. */
     blockedBy: string[];
+    /** Materiale collegato: permette attività del tipo «slide 45-72». */
+    material?: MaterialRef;
   }>;
   /** Ripassi dovuti entro l'orizzonte di pianificazione. */
   dueReviews: Array<{ topicId: string; title: string; dueDate: IsoDate }>;
@@ -187,10 +189,23 @@ export interface PlannerOptions {
   firstMockDaysBefore?: number;
 }
 
+/** Riferimento a un intervallo di pagine di una risorsa. */
+export interface MaterialRef {
+  resourceId: string;
+  segmentId: string;
+  /** Titolo breve della risorsa, es. «Elettronica L3». */
+  resourceLabel: string;
+  pageStart: number;
+  pageEnd: number;
+  /** Etichetta delle pagine: «slide» per le presentazioni, «pagine» altrimenti. */
+  unit: 'slide' | 'pagine';
+}
+
 export interface PlannedTask {
   date: IsoDate;
   examId: string;
   topicId: string | null;
+  material?: MaterialRef;
   title: string;
   objective: string;
   activityType: ActivityType;

@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { GraduationCap, LogOut, User } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
+import { Logo } from './logo';
 import { ThemeToggle } from './theme-toggle';
 import { ConnectionIndicator } from './connection-indicator';
 import { Button } from '@/components/ui/button';
@@ -18,10 +19,8 @@ export function Topbar({ email, onSignOut }: { email: string; onSignOut: () => v
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b bg-background/95 px-4 backdrop-blur lg:px-6">
       <Link href="/oggi" className="flex items-center gap-2 lg:hidden">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <GraduationCap className="h-4 w-4" aria-hidden />
-        </span>
-        <span className="text-sm font-semibold">StudyOS</span>
+        <Logo size={28} />
+        <span className="text-sm font-semibold">StudyAI</span>
       </Link>
       <div className="hidden lg:block" />
       <div className="flex items-center gap-1">

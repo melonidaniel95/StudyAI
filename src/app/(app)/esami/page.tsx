@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { GraduationCap } from 'lucide-react';
 import { getCurrentUser } from '@/lib/supabase/server';
-import { getExamDependencies, getExamOverviews } from '@/server/data';
+import { getExamDependencies, getExamOverviews, getSegments } from '@/server/data';
 import { todayIso } from '@/lib/domain/dates';
 import { PageHeader } from '@/components/shared/page-header';
 import { EmptyState } from '@/components/shared/empty-state';
@@ -17,10 +17,16 @@ export default async function ExamsPage() {
   if (!user) redirect('/accedi');
 
   const today = todayIso();
-  const [overviews, dependencies] = await Promise.all([
+  const [overviews, dependencies, segments] = await Promise.all([
     getExamOverviews(user.id, { today }),
     getExamDependencies(user.id),
+    getSegments(user.id),
   ]);
+
+  // Un esame è pianificabile solo se ha materiale caricato.
+  const conMateriale = new Set(
+    segments.filter((segment) => segment.kind !== 'riferimento').map((segment) => segment.exam_id),
+  );
 
   return (
     <div className="space-y-6">
@@ -34,7 +40,7 @@ export default async function ExamsPage() {
         <EmptyState
           icon={GraduationCap}
           title="Nessun esame inserito"
-          description="Aggiungi il primo esame: potrai poi inserire gli appelli, il programma e lasciare che StudyOS costruisca il piano."
+          description="Aggiungi il primo esame: potrai poi inserire gli appelli, il programma e lasciare che StudyAI costruisca il piano."
           action={<ExamFormDialog />}
         />
       ) : (
@@ -45,6 +51,8 @@ export default async function ExamsPage() {
             name: overview.exam.name,
             shortName: overview.exam.short_name ?? overview.exam.name,
             color: overview.exam.color,
+            icon: overview.exam.icon ?? 'book-open',
+            hasMaterial: conMateriale.has(overview.exam.id),
             status: overview.exam.status,
             kind: overview.exam.kind,
             difficulty: overview.exam.difficulty,

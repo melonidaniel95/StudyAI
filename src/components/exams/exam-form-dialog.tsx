@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { createExamAction, updateExamAction } from '@/server/actions/exams';
+import { EXAM_ICONS, getExamIcon, suggestExamIcon } from '@/lib/exam-icons';
 
 export interface ExamFormValues {
   id?: string;
@@ -31,6 +32,7 @@ export interface ExamFormValues {
   initialLevel: number;
   priority: number;
   estimatedHours: string;
+  icon: string;
   notes: string;
 }
 
@@ -45,6 +47,7 @@ const EMPTY: ExamFormValues = {
   initialLevel: 1,
   priority: 3,
   estimatedHours: '',
+  icon: 'book-open',
   notes: '',
 };
 
@@ -53,6 +56,8 @@ export function ExamFormDialog({ exam }: { exam?: ExamFormValues }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [values, setValues] = useState<ExamFormValues>(exam ?? EMPTY);
+  const [iconTouched, setIconTouched] = useState(Boolean(exam?.icon && exam.icon !== 'book-open'));
+  const SelectedIcon = getExamIcon(values.icon);
 
   const isEdit = Boolean(exam?.id);
 
@@ -68,6 +73,7 @@ export function ExamFormDialog({ exam }: { exam?: ExamFormValues }) {
     formData.set('initialLevel', String(values.initialLevel));
     formData.set('priority', String(values.priority));
     formData.set('estimatedHours', values.estimatedHours);
+    formData.set('icon', values.icon);
     formData.set('notes', values.notes);
 
     startTransition(async () => {
@@ -116,7 +122,15 @@ export function ExamFormDialog({ exam }: { exam?: ExamFormValues }) {
             <Input
               id="exam-name"
               value={values.name}
-              onChange={(event) => setValues({ ...values, name: event.target.value })}
+              onChange={(event) => {
+                const name = event.target.value;
+                // L'icona viene proposta dal nome finché non la scegli a mano.
+                setValues((current) => ({
+                  ...current,
+                  name,
+                  icon: iconTouched ? current.icon : suggestExamIcon(name),
+                }));
+              }}
               required
             />
           </div>
@@ -216,6 +230,41 @@ export function ExamFormDialog({ exam }: { exam?: ExamFormValues }) {
               Prevede una prova orale
             </label>
           </div>
+
+          <fieldset className="space-y-2">
+            <legend className="flex items-center gap-2 text-sm font-medium">
+              Icona della materia
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-secondary">
+                <SelectedIcon className="h-4 w-4" aria-hidden />
+              </span>
+            </legend>
+            <div className="grid max-h-44 grid-cols-6 gap-1.5 overflow-y-auto rounded-md border p-2 sm:grid-cols-8">
+              {EXAM_ICONS.map((option) => {
+                const Icon = option.icon;
+                const selected = values.icon === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    title={option.label}
+                    aria-label={option.label}
+                    aria-pressed={selected}
+                    onClick={() => {
+                      setIconTouched(true);
+                      setValues((current) => ({ ...current, icon: option.value }));
+                    }}
+                    className={
+                      selected
+                        ? 'flex aspect-square items-center justify-center rounded-md bg-primary text-primary-foreground'
+                        : 'flex aspect-square items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground'
+                    }
+                  >
+                    <Icon className="h-4 w-4" aria-hidden />
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
 
           <div className="space-y-1.5">
             <Label htmlFor="exam-notes">Note</Label>

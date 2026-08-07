@@ -11,7 +11,7 @@ test('completamento dell’onboarding e creazione dei dati iniziali', async ({ p
   }
   if (page.url().includes('/oggi')) test.skip(true, 'Onboarding già completato per questo utente.');
 
-  await expect(page.getByRole('heading', { name: /Configuriamo StudyOS/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Configuriamo StudyAI/ })).toBeVisible();
   await completeOnboarding(page);
 
   await page.goto('/esami');

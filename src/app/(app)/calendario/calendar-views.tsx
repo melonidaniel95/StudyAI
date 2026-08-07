@@ -19,6 +19,7 @@ import {
 } from '@/lib/domain/dates';
 import type { ActivityType, IsoDate, SessionRole, TaskStatus } from '@/lib/domain/types';
 import { cn } from '@/lib/utils';
+import { ExamIcon } from '@/lib/exam-icons';
 
 interface CalendarTask {
   id: string;
@@ -57,7 +58,7 @@ export function CalendarViews({
 }: {
   today: IsoDate;
   targetDate: IsoDate;
-  exams: Record<string, { name: string; color: string }>;
+  exams: Record<string, { name: string; color: string; icon: string }>;
   tasks: CalendarTask[];
   examDates: ExamDate[];
   reviews: ReviewDate[];
@@ -181,11 +182,7 @@ export function CalendarViews({
             )}
             title={`${task.title} · ${formatMinutes(task.minutes)}`}
           >
-            <span
-              className="h-1.5 w-1.5 shrink-0 rounded-full"
-              style={{ backgroundColor: exams[task.examId]?.color ?? '#4C6382' }}
-              aria-hidden
-            />
+            <ExamIcon icon={exams[task.examId]?.icon} color={exams[task.examId]?.color} size={11} />
             <span className="truncate">{task.title}</span>
           </p>
         ))}
@@ -285,11 +282,7 @@ export function CalendarViews({
                     className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3 text-sm"
                   >
                     <span className="flex items-center gap-2">
-                      <span
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: exams[item.examId]?.color ?? '#4C6382' }}
-                        aria-hidden
-                      />
+                      <ExamIcon icon={exams[item.examId]?.icon} color={exams[item.examId]?.color} size={15} />
                       {item.label}
                       {item.role === 'principale' ? <Badge>Principale</Badge> : null}
                       {item.role === 'riserva' ? <Badge variant="secondary">Riserva</Badge> : null}

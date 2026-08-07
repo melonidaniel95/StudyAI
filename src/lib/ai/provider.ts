@@ -63,7 +63,7 @@ export async function callAi(request: AiRequest): Promise<AiResponse> {
       ok: false,
       text: '',
       error:
-        'Assistente AI non configurato. Imposta AI_PROVIDER e AI_API_KEY nel file .env.local per attivarlo. Tutte le altre funzioni di StudyOS restano disponibili.',
+        'Assistente AI non configurato. Imposta AI_PROVIDER e AI_API_KEY nel file .env.local per attivarlo. Tutte le altre funzioni di StudyAI restano disponibili.',
     };
   }
 

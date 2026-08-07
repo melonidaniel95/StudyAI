@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient, requireUser } from '@/lib/supabase/server';
 import { resourceSchema } from '@/lib/validation/schemas';
+import { MAX_FILE_SIZE, isAllowedMimeType } from '@/lib/uploads';
 
 export interface ResourceActionResult {
   ok: boolean;
@@ -10,21 +11,6 @@ export interface ResourceActionResult {
   id?: string;
 }
 
-/** Tipi MIME accettati per i file caricati. */
-export const ALLOWED_MIME_TYPES = [
-  'application/pdf',
-  'image/png',
-  'image/jpeg',
-  'image/webp',
-  'text/plain',
-  'text/markdown',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/zip',
-];
-
-export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
 export async function createResourceAction(formData: FormData): Promise<ResourceActionResult> {
   const user = await requireUser();
@@ -55,7 +41,7 @@ export async function createResourceAction(formData: FormData): Promise<Resource
     if (!storagePath.startsWith(`${user.id}/`)) {
       return { ok: false, message: 'Percorso del file non valido.' };
     }
-    if (mimeType && !ALLOWED_MIME_TYPES.includes(mimeType)) {
+    if (mimeType && !isAllowedMimeType(mimeType)) {
       return { ok: false, message: 'Tipo di file non consentito.' };
     }
     if (fileSize > MAX_FILE_SIZE) {

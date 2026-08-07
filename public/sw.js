@@ -1,5 +1,5 @@
 /*
- * Service worker di StudyOS.
+ * Service worker di StudyAI.
  *
  * Strategia:
  *  - risorse statiche: cache-first;
@@ -9,7 +9,7 @@
  *
  * Il piano giornaliero già caricato resta quindi consultabile senza rete.
  */
-const VERSION = 'studyos-v1';
+const VERSION = 'studyai-v1';
 const STATIC_CACHE = `${VERSION}-static`;
 const PAGES_CACHE = `${VERSION}-pages`;
 

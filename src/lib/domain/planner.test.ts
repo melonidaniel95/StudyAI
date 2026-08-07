@@ -149,6 +149,44 @@ describe('generatePlan', () => {
     expect(primoGiorno[0]?.activityType).toBe('ripasso');
   });
 
+  it('pianifica ogni ripasso una volta sola, non tutti i giorni', () => {
+    const plan = generatePlan(
+      [
+        makeExam({
+          examId: 'elettronica',
+          primarySessionDate: '2026-08-27',
+          dueReviews: [{ topicId: 'semiconduttori', title: 'Semiconduttori', dueDate: '2026-08-05' }],
+        }),
+      ],
+      options,
+    );
+    const ripassi = plan.tasks.filter((task) => task.title === 'Ripasso: Semiconduttori');
+    expect(ripassi).toHaveLength(1);
+    expect(ripassi[0]?.date).toBe('2026-08-05');
+  });
+
+  it('non ripete un ripasso arretrato giorno dopo giorno', () => {
+    const plan = generatePlan(
+      [
+        makeExam({
+          examId: 'elettronica',
+          primarySessionDate: '2026-09-15',
+          dueReviews: [
+            { topicId: 'a', title: 'Giunzione PN', dueDate: '2026-07-20' },
+            { topicId: 'b', title: 'Drogaggio', dueDate: '2026-07-25' },
+          ],
+        }),
+      ],
+      { ...options, horizonDays: 30 },
+    );
+    const perTopic = new Map<string, number>();
+    for (const task of plan.tasks.filter((t) => t.activityType === 'ripasso' && t.topicId)) {
+      perTopic.set(task.topicId!, (perTopic.get(task.topicId!) ?? 0) + 1);
+    }
+    for (const [, conteggio] of perTopic) expect(conteggio).toBe(1);
+    expect(perTopic.size).toBe(2);
+  });
+
   it('non pianifica nulla nei giorni indisponibili', () => {
     const plan = generatePlan(
       [makeExam({ examId: 'elettronica', primarySessionDate: '2026-08-27' })],

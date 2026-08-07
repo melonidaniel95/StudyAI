@@ -127,17 +127,18 @@ export default async function TodayPage() {
           title="Oggi non c’è ancora niente in programma"
           description={
             overviews.length === 0
-              ? 'Aggiungi il tuo primo esame, poi genera il piano: StudyOS distribuirà il lavoro sul tempo che hai davvero.'
-              : 'Genera il piano automatico: verrà costruito sul tuo tempo reale, lasciando un margine per gli imprevisti.'
+              ? 'Aggiungi il tuo primo esame, poi carica il materiale: il piano nasce da lì.'
+              : 'Il piano si costruisce sul materiale: apri un esame, vai su «Materiale» e carica le slide. StudyAI ricava argomenti, pagine e tempi reali, poi distribuisce il lavoro sulle ore che hai davvero.'
           }
           action={
-            overviews.length === 0 ? (
-              <Button asChild>
-                <Link href="/esami">Vai agli esami</Link>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button asChild variant={overviews.length === 0 ? 'default' : 'outline'}>
+                <Link href="/esami">
+                  {overviews.length === 0 ? 'Vai agli esami' : 'Carica il materiale'}
+                </Link>
               </Button>
-            ) : (
-              <GeneratePlanButton />
-            )
+              {overviews.length > 0 ? <GeneratePlanButton label="Genera il piano" /> : null}
+            </div>
           }
         />
       ) : (
@@ -149,6 +150,7 @@ export default async function TodayPage() {
               {
                 name: overview.exam.short_name ?? overview.exam.name,
                 color: overview.exam.color,
+                icon: overview.exam.icon ?? 'book-open',
               },
             ]),
           )}

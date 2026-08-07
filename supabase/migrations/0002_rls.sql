@@ -1,5 +1,5 @@
 -- ============================================================================
--- StudyOS — 0002_rls.sql
+-- StudyAI — 0002_rls.sql
 -- Row Level Security su tutte le tabelle.
 -- Regola unica: ogni utente vede e modifica esclusivamente le righe in cui
 -- user_id = auth.uid() (per profiles: id = auth.uid()).

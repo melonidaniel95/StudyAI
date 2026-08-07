@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { ArrowLeft, BookOpen, Clock, RefreshCw, TriangleAlert } from 'lucide-react';
 import { getCurrentUser } from '@/lib/supabase/server';
-import { getExamDependencies, getExamOverviews } from '@/server/data';
+import { getExamDependencies, getExamOverviews, getProfile, getSegments } from '@/server/data';
 import { formatMinutes, relativeDayLabel, todayIso } from '@/lib/domain/dates';
 import { PageHeader } from '@/components/shared/page-header';
 import { ReadinessBar } from '@/components/shared/readiness-bar';
@@ -18,6 +18,11 @@ import { SessionManager } from '@/components/exams/session-manager';
 import { SyllabusEditor } from '@/components/exams/syllabus-editor';
 import { DependencyManager } from '@/components/exams/dependency-manager';
 import { AttemptForm } from '@/components/exams/attempt-form';
+import { MaterialImport } from '@/components/exams/material-import';
+import { MaterialOverview } from '@/components/exams/material-overview';
+import { ExamIcon } from '@/lib/exam-icons';
+import { MaterialAnalysisPanel } from '@/components/exams/material-analysis-panel';
+import { getAnalysisStatusAction } from '@/server/actions/material-analysis';
 import { percent } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
@@ -45,9 +50,12 @@ export default async function ExamDetailPage({
   if (!user) redirect('/accedi');
 
   const today = todayIso();
-  const [overviews, dependencies] = await Promise.all([
+  const [overviews, dependencies, segments, profile, analysis] = await Promise.all([
     getExamOverviews(user.id, { today }),
     getExamDependencies(user.id),
+    getSegments(user.id, examId),
+    getProfile(user.id),
+    getAnalysisStatusAction(examId),
   ]);
 
   const overview = overviews.find((item) => item.exam.id === examId);
@@ -69,6 +77,7 @@ export default async function ExamDetailPage({
 
       <PageHeader
         title={exam.name}
+        icon={<ExamIcon icon={exam.icon} color={exam.color} size={26} />}
         description={
           overview.primarySession
             ? `Appello principale: ${overview.primarySession.exam_date} (${relativeDayLabel(today, overview.primarySession.exam_date)})`
@@ -90,6 +99,7 @@ export default async function ExamDetailPage({
               initialLevel: exam.initial_level,
               priority: exam.priority,
               estimatedHours: exam.estimated_hours ? String(exam.estimated_hours) : '',
+              icon: exam.icon ?? 'book-open',
               notes: exam.notes ?? '',
             }}
           />
@@ -194,7 +204,7 @@ export default async function ExamDetailPage({
               </ul>
               {feasibility.suggestBackup ? (
                 <p className="rounded-md bg-accent/10 p-2 text-xs">
-                  Potresti valutare l’appello di riserva. StudyOS non lo cambia da solo: decidi tu
+                  Potresti valutare l’appello di riserva. StudyAI non lo cambia da solo: decidi tu
                   dalla scheda Appelli.
                 </p>
               ) : null}
@@ -222,6 +232,7 @@ export default async function ExamDetailPage({
       <Tabs defaultValue="programma">
         <TabsList className="flex-wrap">
           <TabsTrigger value="programma">Programma</TabsTrigger>
+          <TabsTrigger value="materiale">Materiale</TabsTrigger>
           <TabsTrigger value="appelli">Appelli</TabsTrigger>
           <TabsTrigger value="prerequisiti">Prerequisiti</TabsTrigger>
           <TabsTrigger value="esiti">Esiti</TabsTrigger>
@@ -252,6 +263,63 @@ export default async function ExamDetailPage({
                   lastReviewedAt: topic.last_reviewed_at,
                 })),
             }))}
+          />
+        </TabsContent>
+
+        <TabsContent value="materiale" className="space-y-4">
+          <MaterialAnalysisPanel
+            examId={exam.id}
+            aiEnabled={Boolean(profile?.ai_enabled)}
+            segmentsCount={segments.filter((segment) => segment.kind !== 'riferimento').length}
+            analyzedCount={
+              segments.filter(
+                (segment) => segment.kind !== 'riferimento' && segment.analyzed_at !== null,
+              ).length
+            }
+            initial={
+              analysis
+                ? {
+                    id: analysis.id,
+                    status: analysis.status,
+                    segmentsDone: analysis.segments_done,
+                    segmentsTotal: analysis.segments_total,
+                    questions: analysis.questions_created,
+                    exercises: analysis.exercises_created,
+                    flashcards: analysis.flashcards_created,
+                    summary: analysis.summary,
+                  }
+                : null
+            }
+          />
+          <MaterialOverview
+            examId={exam.id}
+            minutesPerPage={Number(exam.minutes_per_page)}
+            minutesPerPageExercises={Number(exam.minutes_per_page_exercises)}
+            paceSamples={exam.pace_samples}
+            paceUpdatedAt={exam.pace_updated_at}
+            segments={segments.map((segment) => ({
+              id: segment.id,
+              title: segment.title,
+              resourceTitle: segment.resource?.title ?? 'Materiale',
+              lectureNumber: segment.resource?.lecture_number ?? null,
+              pageStart: segment.page_start,
+              pageEnd: segment.page_end,
+              pagesDone: segment.pages_done,
+              estimatedMinutes: segment.estimated_minutes,
+              actualMinutes: segment.actual_minutes,
+              kind: segment.kind,
+              contentDifficulty: segment.content_difficulty,
+            }))}
+          />
+          <MaterialImport
+            examId={exam.id}
+            userId={user.id}
+            examName={exam.short_name ?? exam.name}
+            difficulty={exam.difficulty}
+            minutesPerPage={Number(exam.minutes_per_page)}
+            minutesPerPageExercises={Number(exam.minutes_per_page_exercises)}
+            maxSessionMinutes={profile?.max_session_minutes ?? 120}
+            minSessionMinutes={profile?.min_session_minutes ?? 25}
           />
         </TabsContent>
 

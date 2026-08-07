@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 /*
-  Palette StudyOS
-  - blu ardesia   → colore principale
-  - azzurro polvere → elementi secondari
-  - ocra caldo     → evidenziazioni
-  - beige chiaro   → sfondi
-  - antracite      → testi e modalità scura
+  Palette StudyAI, ricavata dai colori del logo
+  - blu notte  #1E3C5A → colore principale
+  - azzurro    #8CBEDC → elementi secondari
+  - ambra      #E6A01E → evidenziazioni
+  - beige chiaro       → sfondi
+  - antracite          → testi e modalità scura
 */
 
 @layer base {
@@ -22,14 +22,14 @@
     --popover: 0 0% 100%;
     --popover-foreground: 210 12% 16%;
 
-    --primary: 213 27% 40%;
+    --primary: 210 50% 30%;
     --primary-foreground: 40 33% 98%;
 
-    --secondary: 207 30% 88%;
-    --secondary-foreground: 213 27% 28%;
+    --secondary: 203 53% 87%;
+    --secondary-foreground: 210 50% 24%;
 
-    --accent: 36 44% 51%;
-    --accent-foreground: 40 33% 98%;
+    --accent: 39 80% 51%;
+    --accent-foreground: 210 50% 15%;
 
     --muted: 40 20% 92%;
     --muted-foreground: 210 8% 42%;
@@ -39,7 +39,7 @@
 
     --border: 210 14% 86%;
     --input: 210 14% 86%;
-    --ring: 213 27% 45%;
+    --ring: 210 50% 38%;
 
     --risk-green: 152 42% 35%;
     --risk-yellow: 43 78% 40%;
@@ -60,14 +60,14 @@
     --popover: 210 14% 16%;
     --popover-foreground: 40 20% 94%;
 
-    --primary: 207 45% 68%;
-    --primary-foreground: 210 20% 12%;
+    --primary: 203 53% 71%;
+    --primary-foreground: 210 50% 15%;
 
     --secondary: 210 14% 24%;
     --secondary-foreground: 40 20% 94%;
 
-    --accent: 36 50% 60%;
-    --accent-foreground: 210 20% 12%;
+    --accent: 39 80% 60%;
+    --accent-foreground: 210 50% 12%;
 
     --muted: 210 14% 20%;
     --muted-foreground: 210 10% 68%;
@@ -77,7 +77,7 @@
 
     --border: 210 12% 26%;
     --input: 210 12% 26%;
-    --ring: 207 45% 62%;
+    --ring: 203 53% 65%;
 
     --risk-green: 152 40% 55%;
     --risk-yellow: 43 70% 58%;

@@ -9,7 +9,7 @@ export interface TestUser {
 export function testUser(): TestUser {
   return {
     email: process.env.E2E_EMAIL ?? `studyos-e2e-${Date.now()}@example.com`,
-    password: process.env.E2E_PASSWORD ?? 'StudyOS-e2e-2026!',
+    password: process.env.E2E_PASSWORD ?? 'StudyAI-e2e-2026!',
   };
 }
 

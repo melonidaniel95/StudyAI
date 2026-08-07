@@ -8,7 +8,7 @@ interface NotificationSchedulerProps {
   pendingTasks: number;
 }
 
-const LAST_KEY = 'studyos:ultima-notifica';
+const LAST_KEY = 'studyai:ultima-notifica';
 
 /**
  * Promemoria discreto: al massimo una notifica al giorno, solo se il permesso
@@ -41,7 +41,7 @@ export function NotificationScheduler({
       parts.push(`${dueReviews} ${dueReviews === 1 ? 'ripasso' : 'ripassi'} in scadenza`);
     }
 
-    new Notification('StudyOS — il piano di oggi', {
+    new Notification('StudyAI — il piano di oggi', {
       body: parts.join(' · '),
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',

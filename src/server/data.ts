@@ -33,6 +33,7 @@ import type {
   Profile,
   Question,
   QuestionAttempt,
+  ResourceSegment,
   ReviewSchedule,
   StudyResource,
   StudySession,
@@ -419,6 +420,29 @@ export async function getResourceLinks(userId: string) {
     .select('resource_id, topic_id')
     .eq('user_id', userId);
   return (data ?? []) as Array<{ resource_id: string; topic_id: string }>;
+}
+
+/** Blocchi di pagine collegati agli argomenti, con l'etichetta della risorsa. */
+export async function getSegments(userId: string, examId?: string) {
+  const supabase = await db();
+  let query = supabase
+    .from('resource_segments')
+    .select('*, resource:study_resources(id, title, type, page_count, lecture_number)')
+    .eq('user_id', userId)
+    .order('position');
+  if (examId) query = query.eq('exam_id', examId);
+  const { data } = await query;
+  return (data ?? []) as Array<
+    ResourceSegment & {
+      resource: {
+        id: string;
+        title: string;
+        type: string;
+        page_count: number | null;
+        lecture_number: number | null;
+      } | null;
+    }
+  >;
 }
 
 export async function getTopics(userId: string): Promise<SyllabusTopic[]> {

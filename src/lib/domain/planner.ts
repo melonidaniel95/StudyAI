@@ -20,6 +20,7 @@ import { computePriority } from './priority';
 import type {
   ActivityType,
   IsoDate,
+  MaterialRef,
   PlannedTask,
   PlannerExamInput,
   PlannerOptions,
@@ -32,14 +33,21 @@ interface TopicRuntime {
   remaining: number;
   difficulty: number;
   blockedBy: string[];
+  material?: MaterialRef;
 }
 
 interface ExamRuntime {
   input: PlannerExamInput;
   queue: TopicRuntime[];
+  /**
+   * Ripassi ancora da pianificare. Ogni ripasso viene rimosso appena entra nel
+   * piano: senza questa coda lo stesso ripasso verrebbe ripescato ogni giorno
+   * successivo alla sua scadenza, riempiendo il piano di duplicati.
+   */
+  pendingReviews: Array<{ topicId: string; title: string; dueDate: IsoDate }>;
   completed: Set<string>;
   lastActivity: ActivityType | null;
-  lastTopic: { id: string; title: string } | null;
+  lastTopic: { id: string; title: string; material?: MaterialRef } | null;
   mockPlanned: number;
   backlogRemaining: number;
   errorsHandled: boolean;
@@ -66,7 +74,9 @@ function buildRuntime(exams: PlannerExamInput[]): ExamRuntime[] {
       remaining: Math.max(BLOCK, topic.estimatedMinutes),
       difficulty: topic.difficulty,
       blockedBy: topic.blockedBy,
+      material: topic.material,
     })),
+    pendingReviews: [...exam.dueReviews].sort((a, b) => a.dueDate.localeCompare(b.dueDate)),
     completed: new Set<string>(),
     lastActivity: null,
     lastTopic: null,
@@ -202,7 +212,7 @@ function remainingWork(runtime: ExamRuntime): number {
 }
 
 function hasReviewOn(runtime: ExamRuntime, date: IsoDate): boolean {
-  return runtime.input.dueReviews.some((r) => r.dueDate <= date);
+  return runtime.pendingReviews.some((review) => review.dueDate <= date);
 }
 
 function shouldPlanMock(runtime: ExamRuntime, date: IsoDate, options: PlannerOptions): boolean {
@@ -240,12 +250,14 @@ function buildTasksForSlot(
     objective: string,
     topicId: string | null,
     extraReason?: string,
+    material?: MaterialRef,
   ) => {
     if (minutes < BLOCK) return;
     tasks.push({
       date: day.date,
       examId: exam.examId,
       topicId,
+      material,
       title,
       objective,
       activityType,
@@ -260,18 +272,27 @@ function buildTasksForSlot(
     runtime.plannedMinutes += minutes;
   };
 
-  // 1. Ripassi dovuti: hanno la precedenza.
-  const dueReviews = exam.dueReviews.filter((r) => r.dueDate <= day.date).slice(0, 2);
-  for (const review of dueReviews) {
-    const minutes = Math.min(30, Math.max(BLOCK, Math.floor(remaining / 2)));
+  // 1. Ripassi dovuti: hanno la precedenza, ma ciascuno una volta sola.
+  const dueToday = runtime.pendingReviews
+    .filter((review) => review.dueDate <= day.date)
+    .slice(0, 2);
+
+  for (const review of dueToday) {
     if (remaining < BLOCK) break;
+    const minutes = Math.min(30, Math.max(BLOCK, Math.floor(remaining / 2)));
     push(
       'ripasso',
       minutes,
       `Ripasso: ${review.title}`,
       'Rievoca i punti principali senza guardare gli appunti, poi verifica.',
       review.topicId,
-      `Ripasso in scadenza dal ${review.dueDate}.`,
+      review.dueDate < day.date
+        ? `Ripasso arretrato, in scadenza dal ${review.dueDate}.`
+        : 'Ripasso in scadenza oggi.',
+    );
+    // Consumato: non deve ricomparire nei giorni successivi.
+    runtime.pendingReviews = runtime.pendingReviews.filter(
+      (item) => item.topicId !== review.topicId,
     );
   }
 
@@ -351,6 +372,7 @@ function buildTasksForSlot(
         'Applica quanto studiato risolvendo esercizi senza guardare la soluzione.',
         runtime.lastTopic.id,
         'Teoria ed esercizi si alternano.',
+        runtime.lastTopic.material,
       );
       continue;
     }
@@ -364,13 +386,19 @@ function buildTasksForSlot(
     );
     topic.remaining -= minutes;
     if (topic.remaining <= 0) runtime.completed.add(topic.id);
-    runtime.lastTopic = { id: topic.id, title: topic.title };
+    runtime.lastTopic = { id: topic.id, title: topic.title, material: topic.material };
     push(
       'teoria',
       minutes,
-      `Studio: ${topic.title}`,
-      'Studia attivamente: alla fine spiega l’argomento a voce senza guardare.',
+      topic.material
+        ? `${topic.material.resourceLabel} — ${topic.title} (${topic.material.unit} ${topic.material.pageStart}-${topic.material.pageEnd})`
+        : `Studio: ${topic.title}`,
+      topic.material
+        ? `Copri ${topic.material.unit} da ${topic.material.pageStart} a ${topic.material.pageEnd}, poi spiega a voce quello che hai letto senza guardare.`
+        : 'Studia attivamente: alla fine spiega l’argomento a voce senza guardare.',
       topic.id,
+      undefined,
+      topic.material,
     );
   }
 

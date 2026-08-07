@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { syncOfflineSessionAction } from '@/server/actions/sessions';
 
-const QUEUE_KEY = 'studyos:sessioni-da-sincronizzare';
+const QUEUE_KEY = 'studyai:sessioni-da-sincronizzare';
 
 export interface QueuedSession {
   clientUuid: string;

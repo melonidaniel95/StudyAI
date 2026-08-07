@@ -1,8 +1,8 @@
-# StudyOS
+# StudyAI
 
 Sistema operativo personale per lo studio universitario.
 
-StudyOS non è un archivio di PDF né un calendario. Ogni giorno risponde a una domanda sola:
+StudyAI non è un archivio di PDF né un calendario. Ogni giorno risponde a una domanda sola:
 
 > «Ho un certo numero di ore disponibili: che cosa devo studiare oggi, per quanto tempo e come verifico di averlo davvero imparato?»
 
@@ -46,6 +46,7 @@ Obiettivo di riferimento del progetto: superare tutti gli esami entro il **30 se
 | **Quaderno degli errori** | 8 tipologie di errore, causa, correzione, ripetizioni; gli errori ricorrenti alzano la priorità dell'argomento |
 | **Preparazione** | Punteggio trasparente e configurabile: programma 20%, recupero attivo 25%, esercizi 25%, simulazioni 20%, ripassi 10% |
 | **Fattibilità** | Verde / giallo / arancione / rosso / grigio, con le motivazioni sempre esposte |
+| **Materiale** | Caricamento multiplo di slide e dispense, lettura del PDF nel browser, programma e stime generati dalle pagine reali |
 | **Risorse** | Upload su Supabase Storage in cartelle per utente, link, tag, ricerca, collegamento agli argomenti |
 | **Statistiche** | Ore per settimana ed esame, attività completate, andamento della memoria, errori più frequenti, scarto tra stime e realtà |
 | **PWA** | Installabile, funziona offline sul piano già caricato, sincronizza le sessioni alla riconnessione |
@@ -113,6 +114,8 @@ Comandi disponibili:
    - `0002_rls.sql` — Row Level Security su tutte le tabelle
    - `0003_storage.sql` — bucket privato `study-materials` e relative policy
    - `0004_seed_function.sql` — funzione `seed_initial_data()` con esami, appelli, prerequisiti e programmi dimostrativi
+   - `0005_materiale_e_segmenti.sql` — blocchi di pagine, ritmo di studio per esame e taratura automatica
+   - `0006_icone_e_analisi_ai.sql` — icona per materia, difficoltà misurata sul contenuto, analisi AI del materiale
 4. **Authentication → Providers → Email**: lascia attivo l'accesso con email e password.
    - Per usare l'app subito senza attendere l'email, disattiva *Confirm email* in **Authentication → Sign In / Providers → Email**.
 5. **Authentication → URL Configuration**: imposta *Site URL* su `http://localhost:3000` (e sull'URL di produzione dopo il deploy). Aggiungi `http://localhost:3000/auth/callback` fra i *Redirect URLs*.
@@ -224,6 +227,22 @@ erDiagram
 - Storage: bucket privato, percorso obbligatorio `study-materials/<user_id>/…`, limite 50 MB, elenco chiuso di tipi MIME.
 - Validazione server-side con Zod su **tutte** le Server Action, indipendentemente dai controlli lato client.
 - Il test `tests/data-isolation.test.ts` verifica automaticamente che ogni query lato server sia filtrata per utente e che la RLS copra tutte le tabelle.
+
+---
+
+## Pianificazione dal materiale reale
+
+Il piano non nasce da stime a occhio: nasce dalle slide che carichi.
+
+1. **Carica** — dalla scheda di un esame, *Materiale*: selezioni tutti i PDF del corso insieme (fino a 40).
+2. **Analisi nel browser** — pdf.js legge numero di pagine e indice. Se l'indice manca, StudyAI ricava i titoli dalla prima riga di ogni pagina (funziona bene sulle slide); se nemmeno quello è affidabile, divide in blocchi omogenei. **Nessun file viene inviato altrove per l'analisi.**
+3. **Proposta** — vedi i blocchi con l'intervallo di pagine e il tempo stimato, e puoi correggerli prima di confermare. Le parti riconosciute come esercizi usano un ritmo diverso; indice e bibliografia non generano tempo di studio.
+4. **Conferma** — ogni file diventa un modulo del programma, ogni blocco un argomento con il suo intervallo di pagine.
+5. **Piano** — le attività diventano concrete: «L03 — Giunzione PN (slide 45-72), 35 min», non «studia giunzione PN».
+6. **Analisi AI** *(facoltativa)* — dalla scheda Materiale, «Analizza tutto il materiale»: l'AI legge il testo estratto dalle slide e per ogni blocco stabilisce la **difficoltà reale del contenuto** (1-5), i concetti chiave, e genera domande, esercizi e flashcard. Procede a lotti, con avanzamento visibile e possibilità di interrompere. Il piano usa poi quella difficoltà al posto di quella impostata a occhio: un blocco denso di derivazioni riceve più tempo di uno descrittivo della stessa lunghezza.
+7. **Taratura** — a fine sessione indichi quante pagine hai davvero coperto. Dopo tre sessioni StudyAI ricalcola i minuti per pagina sui tuoi tempi reali e aggiorna le stime dei blocchi ancora da fare.
+
+Il ritmo si muove al massimo del 40% per volta, così una giornata storta non stravolge il piano. I valori di partenza (2 min/pagina di teoria, 5 min/pagina di esercizi) sono modificabili per ogni esame.
 
 ---
 
@@ -352,6 +371,7 @@ Copertura dei test unitari:
 | `reschedule.test.ts` | Il lavoro saltato viene distribuito e non ammassato, rispetto della capacità e della data d'esame |
 | `availability.test.ts` | Margine, giorni di riposo, giornate non disponibili |
 | `dates.test.ts` | Aritmetica delle date, fuso Europe/Rome, formati italiani |
+| `materials.test.ts` | Divisione in blocchi da indice o a pagine, copertura completa senza buchi, ritmo esercizi, taratura sui tempi reali con limite del 40% |
 | `data-isolation.test.ts` | RLS su tutte le tabelle, `user_id` obbligatorio, filtro utente in ogni query server, contenuto del seed |
 | `risk-badge.test.tsx` | Il colore non è mai l'unico indicatore |
 
@@ -393,7 +413,7 @@ Nessuna configurazione aggiuntiva: il service worker e il manifest sono file sta
 
 L'app funziona interamente senza AI. Se lo attivi:
 
-- imposta `AI_PROVIDER` (`anthropic` o `openai`) e `AI_API_KEY`, poi abilitalo in *Impostazioni*;
+- imposta `AI_PROVIDER` (`anthropic` o `openai`) e `AI_API_KEY`, poi abilitalo in *Impostazioni* (l'interruttore nel profilo è il consenso esplicito: senza di esso non parte nessuna chiamata);
 - funzioni disponibili: spiegazione di un concetto, generazione di domande, flashcard ed esercizi progressivi, analisi di un testo per proporre moduli e argomenti, traccia di simulazione, individuazione delle lacune, riassunto degli errori;
 - modalità **Interrogami**: una domanda alla volta, valutazione motivata, e la padronanza dell'argomento viene aggiornata **solo dopo la tua conferma esplicita**;
 - ogni contenuto generato è marcato **«Da verificare»** e salvato nel database soltanto quando lo confermi;

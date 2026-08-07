@@ -27,6 +27,7 @@ import { formatMinutes } from '@/lib/domain/dates';
 import type { StudyTask } from '@/types/db';
 import type { ActivityType } from '@/lib/domain/types';
 import { cn } from '@/lib/utils';
+import { ExamIcon } from '@/lib/exam-icons';
 
 const ACTIVITY_LABELS: Record<ActivityType, string> = {
   teoria: 'Teoria',
@@ -41,7 +42,7 @@ const ACTIVITY_LABELS: Record<ActivityType, string> = {
 
 interface TaskListProps {
   tasks: StudyTask[];
-  exams: Record<string, { name: string; color: string }>;
+  exams: Record<string, { name: string; color: string; icon: string }>;
   topicTitles: Record<string, string>;
 }
 
@@ -85,11 +86,7 @@ export function TaskList({ tasks, exams, topicTitles }: TaskListProps) {
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0 space-y-1">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span
-                        className="h-2.5 w-2.5 shrink-0 rounded-full"
-                        style={{ backgroundColor: exam?.color ?? '#4C6382' }}
-                        aria-hidden
-                      />
+                      <ExamIcon icon={exam?.icon} color={exam?.color} size={15} />
                       <span className="text-xs font-medium text-muted-foreground">
                         {exam?.name ?? 'Esame'}
                       </span>

@@ -1,4 +1,4 @@
-# Stato di avanzamento — StudyOS
+# Stato di avanzamento — StudyAI
 
 Ultimo aggiornamento: 6 agosto 2026.
 
@@ -50,6 +50,41 @@ Ultimo aggiornamento: 6 agosto 2026.
 | Notifiche del browser previo consenso | ✅ | `src/components/pwa/notification-scheduler.tsx` |
 | Riprogrammazione automatica distribuita | ✅ | `src/lib/domain/reschedule.ts` |
 
+## Fase 4 — Pianificazione dal materiale ✅
+
+| Funzione | Stato | Dove |
+| --- | --- | --- |
+| Caricamento multiplo di slide e dispense | ✅ | `src/components/exams/material-import.tsx` |
+| Estrazione di pagine e indice dal PDF nel browser | ✅ | `src/lib/pdf/extract.ts` |
+| Divisione in blocchi con intervalli di pagina | ✅ | `src/lib/domain/materials.ts` |
+| Stime di tempo da pagine × minuti-per-pagina | ✅ | `estimateMinutes`, `buildSegments` |
+| Attività del piano con intervallo di slide | ✅ | `src/lib/domain/planner.ts`, `planning.ts` |
+| Pagine coperte registrate a fine sessione | ✅ | `src/app/sessione/[sessionId]/focus-session.tsx` |
+| Taratura automatica del ritmo sui tempi reali | ✅ | `calibratePace`, `recalibratePaceAction` |
+| Avanzamento in pagine, non in file aperti | ✅ | `src/components/exams/material-overview.tsx` |
+
+## Fase 5 — Icone e analisi AI del materiale ✅
+
+| Funzione | Stato | Dove |
+| --- | --- | --- |
+| Icona per ogni materia, con proposta automatica dal nome | ✅ | `src/lib/exam-icons.tsx` |
+| Selettore di icona nel form esame, 32 icone curate | ✅ | `src/components/exams/exam-form-dialog.tsx` |
+| Icone in elenco, dettaglio, Oggi, piano, calendario, dashboard | ✅ | — |
+| Testo delle slide estratto durante l'importazione | ✅ | `extractPagesText` in `src/lib/pdf/extract.ts` |
+| Densità di formule come indicatore di pesantezza | ✅ | `estimateFormulaDensity` |
+| Analisi AI a lotti con avanzamento e interruzione | ✅ | `src/server/actions/material-analysis.ts` |
+| Difficoltà del contenuto che corregge le stime del piano | ✅ | `src/server/actions/planning.ts` |
+| Domande, esercizi e flashcard generati dal materiale reale | ✅ | `MATERIAL_ANALYSIS_SYSTEM` |
+
+## Identità visiva ✅
+
+| Elemento | Stato |
+| --- | --- |
+| Logo StudyAI come icona PWA (192, 512, maskable, apple-touch, favicon) | ✅ |
+| Logo nella sidebar, nella barra superiore, nell'accesso e nell'onboarding | ✅ |
+| Palette allineata ai colori del logo: blu notte #1E3C5A, azzurro #8CBEDC, ambra #E6A01E | ✅ |
+| Nome dell'applicazione aggiornato da StudyOS a StudyAI ovunque | ✅ |
+
 ---
 
 ## Verifiche eseguite
@@ -58,7 +93,7 @@ Ultimo aggiornamento: 6 agosto 2026.
 | --- | --- |
 | `tsc --noEmit` sull'intero sorgente | ✅ 0 errori |
 | `next lint` | ✅ nessun errore né avviso |
-| Test unitari e di integrazione (Vitest) | ✅ 98 test superati |
+| Test unitari e di integrazione (Vitest) | ✅ 127 test superati |
 | Test di isolamento dati e migrazioni | ✅ 15 test superati |
 | Compilazione delle route (dev server) | ✅ nessun errore |
 | `next build` | ⚠️ da eseguire in locale: vedi nota |
@@ -71,7 +106,7 @@ Ultimo aggiornamento: 6 agosto 2026.
 
 Nessuna funzione richiesta è stata omessa. Restano questi miglioramenti, non bloccanti:
 
-1. **Prerequisiti tra argomenti**: la tabella `topic_prerequisites` e il supporto nel motore (`blockedBy`) esistono, manca l'interfaccia per impostarli.
+1. **Prerequisiti tra argomenti**: la tabella `topic_prerequisites` e il supporto nel motore (`blockedBy`) esistono; l'analisi AI individua già i prerequisiti (campo `requires`) ma non li scrive ancora nella tabella, quindi il motore non li usa per ordinare gli argomenti.
 2. **Snapshot storici di preparazione**: la tabella `readiness_snapshots` è pronta; oggi la preparazione è ricalcolata a ogni richiesta. Uno snapshot giornaliero permetterebbe il grafico dell'andamento nel tempo.
 3. **Notifiche push reali**: oggi sono notifiche del browser mostrate ad app aperta. Per i promemoria ad app chiusa servono Web Push e chiavi VAPID.
 4. **Trascinamento dei moduli**: gli argomenti si riordinano trascinandoli; per i moduli esiste l'azione server ma non ancora il trascinamento nell'interfaccia.

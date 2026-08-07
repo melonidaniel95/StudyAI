@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,7 +27,15 @@ import { addInterruptionAction, completeSessionAction } from '@/server/actions/s
 import { enqueueSession } from '@/components/pwa/offline-sync';
 import type { Exam, StudyResource, StudySession, StudyTask, SyllabusTopic } from '@/types/db';
 
-const OFFLINE_KEY = 'studyos:sessione-in-corso';
+const OFFLINE_KEY = 'studyai:sessione-in-corso';
+
+interface SegmentInfo {
+  id: string;
+  title: string;
+  pageStart: number;
+  pageEnd: number;
+  pagesDone: number;
+}
 
 interface FocusSessionProps {
   session: StudySession;
@@ -34,6 +43,7 @@ interface FocusSessionProps {
   topic: SyllabusTopic | null;
   task: StudyTask | null;
   resources: StudyResource[];
+  segment?: SegmentInfo | null;
 }
 
 function formatClock(totalSeconds: number): string {
@@ -49,7 +59,14 @@ const CHECKLIST = [
   'Ho annotato dubbi ed errori',
 ];
 
-export function FocusSession({ session, exam, topic, task, resources }: FocusSessionProps) {
+export function FocusSession({
+  session,
+  exam,
+  topic,
+  task,
+  resources,
+  segment = null,
+}: FocusSessionProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -69,6 +86,9 @@ export function FocusSession({ session, exam, topic, task, resources }: FocusSes
   const [objectiveCompleted, setObjectiveCompleted] = useState(true);
   const [difficulties, setDifficulties] = useState('');
   const [nextReviewDays, setNextReviewDays] = useState('');
+  const [pagesCovered, setPagesCovered] = useState(
+    segment ? String(Math.max(0, segment.pageEnd - segment.pageStart + 1 - segment.pagesDone)) : '',
+  );
   const [addError, setAddError] = useState(false);
   const [errorText, setErrorText] = useState('');
   const [offline, setOffline] = useState(false);
@@ -157,6 +177,7 @@ export function FocusSession({ session, exam, topic, task, resources }: FocusSes
     formData.set('difficulties', difficulties);
     formData.set('doubts', doubts);
     if (nextReviewDays) formData.set('nextReviewDays', nextReviewDays);
+    if (pagesCovered) formData.set('pagesCovered', pagesCovered);
     formData.set('addError', String(addError));
     formData.set('errorText', errorText);
 
@@ -278,8 +299,31 @@ export function FocusSession({ session, exam, topic, task, resources }: FocusSes
               ) : null}
             </div>
 
+            {segment ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="pagesCovered">
+                  6. Quante pagine hai davvero coperto? (da {segment.pageStart} a {segment.pageEnd})
+                </Label>
+                <Input
+                  id="pagesCovered"
+                  type="number"
+                  min={0}
+                  max={5000}
+                  value={pagesCovered}
+                  onChange={(event) => setPagesCovered(event.target.value)}
+                  className="w-32"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Serve a tarare il ritmo: dopo qualche sessione StudyAI saprà quante pagine riesci a
+                  fare davvero in un’ora e userà quel valore per pianificare.
+                </p>
+              </div>
+            ) : null}
+
             <div className="space-y-1.5">
-              <Label htmlFor="nextReviewDays">6. Quando pensi di dover ripassare?</Label>
+              <Label htmlFor="nextReviewDays">
+                {segment ? '7' : '6'}. Quando pensi di dover ripassare?
+              </Label>
               <select
                 id="nextReviewDays"
                 value={nextReviewDays}
@@ -326,6 +370,13 @@ export function FocusSession({ session, exam, topic, task, resources }: FocusSes
           {topic ? <Badge>{topic.title}</Badge> : null}
         </div>
         <h1 className="text-xl font-semibold">{task?.title ?? 'Sessione di studio'}</h1>
+        {segment ? (
+          <p className="flex items-center gap-2 rounded-md bg-secondary/50 px-3 py-2 text-sm font-medium">
+            <BookOpen className="h-4 w-4 shrink-0" aria-hidden />
+            Copri le pagine {segment.pageStart}-{segment.pageEnd}
+            {segment.pagesDone > 0 ? ` · ne hai già fatte ${segment.pagesDone}` : ''}
+          </p>
+        ) : null}
         {task?.objective ? (
           <p className="flex items-start gap-2 text-sm text-muted-foreground">
             <Target className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />

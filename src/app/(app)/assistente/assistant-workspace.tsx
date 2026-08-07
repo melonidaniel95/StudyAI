@@ -93,7 +93,7 @@ export function AssistantWorkspace({
             Assistente non attivo
           </CardTitle>
           <CardDescription>
-            StudyOS funziona interamente anche senza AI: piano, sessioni, ripassi, esercizi e
+            StudyAI funziona interamente anche senza AI: piano, sessioni, ripassi, esercizi e
             simulazioni non ne hanno bisogno.
           </CardDescription>
         </CardHeader>

@@ -1,5 +1,5 @@
 -- ============================================================================
--- StudyOS — 0003_storage.sql
+-- StudyAI — 0003_storage.sql
 -- Bucket privato per i materiali di studio, una cartella per utente:
 --   study-materials/<user_id>/<nome-file>
 -- ============================================================================

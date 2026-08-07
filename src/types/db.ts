@@ -91,11 +91,16 @@ export interface Exam {
   status: ExamStatus;
   priority: number;
   color: string;
+  icon: string;
   estimated_hours: number | null;
   target_date: IsoDate | null;
   notes: string | null;
   syllabus_is_draft: boolean;
   archived: boolean;
+  minutes_per_page: number;
+  minutes_per_page_exercises: number;
+  pace_samples: number;
+  pace_updated_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -166,6 +171,10 @@ export interface SyllabusTopic {
   comprehension: number;
   frequently_asked: boolean;
   is_draft: boolean;
+  content_difficulty: number | null;
+  formula_density: number | null;
+  key_concepts: string[];
+  analyzed_at: string | null;
   total_study_minutes: number;
   first_studied_at: string | null;
   last_studied_at: string | null;
@@ -189,6 +198,55 @@ export interface StudyResource {
   tags: string[];
   notes: string | null;
   is_primary: boolean;
+  page_count: number | null;
+  outline: Array<{ title: string; page: number; level: number }>;
+  lecture_number: number | null;
+  processed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Porzione pianificabile di una risorsa: un intervallo di pagine. */
+export interface ResourceSegment {
+  id: string;
+  user_id: string;
+  resource_id: string;
+  exam_id: string;
+  topic_id: string | null;
+  title: string;
+  position: number;
+  page_start: number;
+  page_end: number;
+  pages_done: number;
+  estimated_minutes: number;
+  actual_minutes: number;
+  kind: 'teoria' | 'esercizi' | 'riferimento';
+  is_draft: boolean;
+  content_difficulty: number | null;
+  formula_density: number | null;
+  text_sample: string | null;
+  word_count: number | null;
+  analyzed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Stato dell'analisi AI del materiale di un esame. */
+export interface MaterialAnalysis {
+  id: string;
+  user_id: string;
+  exam_id: string;
+  status: 'in_corso' | 'completata' | 'fallita' | 'annullata';
+  segments_total: number;
+  segments_done: number;
+  questions_created: number;
+  exercises_created: number;
+  flashcards_created: number;
+  summary: string | null;
+  prerequisites: Array<{ topic: string; requires: string[] }>;
+  error_message: string | null;
+  started_at: string;
+  completed_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -256,6 +314,10 @@ export interface StudyTask {
   is_locked: boolean;
   rescheduled_from: IsoDate | null;
   reschedule_count: number;
+  resource_id: string | null;
+  segment_id: string | null;
+  page_start: number | null;
+  page_end: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -280,6 +342,9 @@ export interface StudySession {
   notes: string | null;
   doubts: string | null;
   next_review_days: number | null;
+  resource_id: string | null;
+  segment_id: string | null;
+  pages_covered: number | null;
   client_uuid: string | null;
   created_at: string;
   updated_at: string;

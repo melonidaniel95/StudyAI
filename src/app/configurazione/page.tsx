@@ -11,7 +11,7 @@ export default function ConfigurationPage() {
         <CardHeader>
           <CardTitle>Manca la configurazione di Supabase</CardTitle>
           <CardDescription>
-            StudyOS ha bisogno di un progetto Supabase per database, autenticazione e archiviazione
+            StudyAI ha bisogno di un progetto Supabase per database, autenticazione e archiviazione
             dei materiali.
           </CardDescription>
         </CardHeader>

@@ -1,4 +1,4 @@
-# Architettura di StudyOS
+# Architettura di StudyAI
 
 Documento delle decisioni tecniche. Il README spiega *come si usa* il progetto; qui si spiega *perché è fatto così*.
 
@@ -6,7 +6,7 @@ Documento delle decisioni tecniche. Il README spiega *come si usa* il progetto; 
 
 ## 1. Principio guida
 
-Il valore di StudyOS non è nell'interfaccia ma in tre domande a cui deve saper rispondere con onestà:
+Il valore di StudyAI non è nell'interfaccia ma in tre domande a cui deve saper rispondere con onestà:
 
 1. **Che cosa studio oggi?** → motore di pianificazione
 2. **Quanto sono davvero preparato?** → calcolo della preparazione

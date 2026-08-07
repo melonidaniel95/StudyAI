@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ClipboardList } from 'lucide-react';
 import { getCurrentUser } from '@/lib/supabase/server';
@@ -12,6 +13,7 @@ import {
 } from '@/server/data';
 import { addDaysIso, todayIso } from '@/lib/domain/dates';
 import { buildCapacityCalendar } from '@/lib/domain/availability';
+import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/shared/page-header';
 import { EmptyState } from '@/components/shared/empty-state';
 import { GeneratePlanButton } from '@/components/plan/generate-plan-button';
@@ -53,7 +55,11 @@ export default async function PlanPage() {
   const examMap = Object.fromEntries(
     overviews.map((overview) => [
       overview.exam.id,
-      { name: overview.exam.short_name ?? overview.exam.name, color: overview.exam.color },
+      {
+        name: overview.exam.short_name ?? overview.exam.name,
+        color: overview.exam.color,
+        icon: overview.exam.icon ?? 'book-open',
+      },
     ]),
   );
 
@@ -82,8 +88,15 @@ export default async function PlanPage() {
         <EmptyState
           icon={ClipboardList}
           title="Il piano è vuoto"
-          description="Genera il piano automatico: verranno distribuite teoria, esercizi, ripassi e simulazioni sul tempo che hai davvero."
-          action={<GeneratePlanButton label="Genera il piano" />}
+          description="Il piano parte dal materiale: carica le slide di un esame dalla scheda «Materiale», poi genera il piano. Verranno distribuite teoria, esercizi, ripassi e simulazioni sul tempo che hai davvero, con l’indicazione esatta delle pagine da coprire."
+          action={
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button asChild variant="outline">
+                <Link href="/esami">Carica il materiale</Link>
+              </Button>
+              <GeneratePlanButton label="Genera il piano" />
+            </div>
+          }
         />
       ) : (
         <PlanTimeline

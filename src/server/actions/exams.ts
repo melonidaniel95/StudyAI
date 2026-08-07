@@ -30,6 +30,7 @@ export async function createExamAction(formData: FormData): Promise<ExamActionRe
     initialLevel: formData.get('initialLevel'),
     priority: formData.get('priority'),
     estimatedHours: formData.get('estimatedHours') || undefined,
+    icon: formData.get('icon') || 'book-open',
     notes: formData.get('notes') ?? '',
   });
 
@@ -52,6 +53,7 @@ export async function createExamAction(formData: FormData): Promise<ExamActionRe
       initial_level: parsed.data.initialLevel,
       priority: parsed.data.priority,
       estimated_hours: parsed.data.estimatedHours ?? null,
+      icon: parsed.data.icon,
       notes: parsed.data.notes || null,
     })
     .select('id')
@@ -81,6 +83,7 @@ export async function updateExamAction(examId: string, formData: FormData): Prom
     initialLevel: formData.get('initialLevel'),
     priority: formData.get('priority'),
     estimatedHours: formData.get('estimatedHours') || undefined,
+    icon: formData.get('icon') || 'book-open',
     notes: formData.get('notes') ?? '',
   });
 
@@ -102,6 +105,7 @@ export async function updateExamAction(examId: string, formData: FormData): Prom
       initial_level: parsed.data.initialLevel,
       priority: parsed.data.priority,
       estimated_hours: parsed.data.estimatedHours ?? null,
+      icon: parsed.data.icon,
       notes: parsed.data.notes || null,
     })
     .eq('id', examId)

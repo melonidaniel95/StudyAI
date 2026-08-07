@@ -4,6 +4,15 @@ import { createClient, getCurrentUser } from '@/lib/supabase/server';
 import { FocusSession } from './focus-session';
 import type { Exam, StudyResource, StudySession, StudyTask, SyllabusTopic } from '@/types/db';
 
+interface SegmentRow {
+  id: string;
+  title: string;
+  page_start: number;
+  page_end: number;
+  pages_done: number;
+  kind: string;
+}
+
 export const metadata: Metadata = { title: 'Sessione di studio' };
 export const dynamic = 'force-dynamic';
 
@@ -37,6 +46,18 @@ export default async function SessionPage({
       : Promise.resolve({ data: null }),
   ]);
 
+  // Blocco di pagine collegato alla sessione, se l'attività nasce dal materiale.
+  let segment: SegmentRow | null = null;
+  if (session.segment_id) {
+    const { data: segmentRow } = await supabase
+      .from('resource_segments')
+      .select('id, title, page_start, page_end, pages_done, kind')
+      .eq('id', session.segment_id)
+      .eq('user_id', user.id)
+      .maybeSingle();
+    segment = (segmentRow as SegmentRow | null) ?? null;
+  }
+
   let resources: StudyResource[] = [];
   if (session.topic_id) {
     const { data: links } = await supabase
@@ -63,6 +84,17 @@ export default async function SessionPage({
         topic={topicRow as SyllabusTopic | null}
         task={taskRow as StudyTask | null}
         resources={resources}
+        segment={
+          segment
+            ? {
+                id: segment.id,
+                title: segment.title,
+                pageStart: segment.page_start,
+                pageEnd: segment.page_end,
+                pagesDone: segment.pages_done,
+              }
+            : null
+        }
       />
     </main>
   );

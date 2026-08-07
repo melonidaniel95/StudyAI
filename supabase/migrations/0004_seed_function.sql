@@ -1,5 +1,5 @@
 -- ============================================================================
--- StudyOS — 0004_seed_function.sql
+-- StudyAI — 0004_seed_function.sql
 -- Funzione di seed richiamata alla fine dell'onboarding.
 -- Popola, SOLO per l'utente autenticato: 14 esami, prerequisiti, appelli 2026,
 -- disponibilità settimanale, piano attivo e i due programmi dimostrativi
@@ -31,22 +31,22 @@ begin
 
   -- ------------------------------------------------------------------ esami
   insert into public.exams
-    (user_id, name, short_name, kind, has_exercises, has_oral, difficulty, priority, cfu, estimated_hours, color, target_date)
+    (user_id, name, short_name, kind, has_exercises, has_oral, difficulty, priority, cfu, estimated_hours, color, icon, target_date)
   values
-    (uid, 'Amministrazione di Sistemi IT e Cloud', 'Sistemi IT e Cloud', 'misto',    true,  true,  3, 2, 6,  70,  '#4C6382', date '2027-09-30'),
-    (uid, 'Applicazioni Industriali Elettriche',   'Appl. Ind. Elettriche', 'scritto', true,  false, 4, 2, 6,  90,  '#6B8CA8', date '2027-09-30'),
-    (uid, 'Architettura dei Calcolatori Elettronici', 'Architettura Calc.', 'scritto', true,  false, 4, 3, 9,  110, '#4C6382', date '2027-09-30'),
-    (uid, 'Elementi di Elettronica',               'Elettronica',        'scritto', true,  false, 4, 5, 9,  100, '#B98B4A', date '2026-08-27'),
-    (uid, 'Fondamenti di Controlli Automatici',    'Controlli Automatici', 'scritto', true, false, 5, 2, 9,  120, '#6B8CA8', date '2027-09-30'),
-    (uid, 'Idoneità di Lingua Inglese B2',         'Inglese B2',         'idoneita', true, true,  2, 3, 3,  40,  '#8FA9BF', date '2027-09-30'),
-    (uid, 'Ingegneria del Software',               'Ing. del Software',  'misto',   true,  true,  3, 2, 9,  90,  '#4C6382', date '2027-09-30'),
-    (uid, 'Matematica Applicata',                  'Matematica Applicata', 'scritto', true, false, 5, 3, 9,  120, '#6B8CA8', date '2027-09-30'),
-    (uid, 'Metodi Probabilistici per l''Ingegneria', 'Metodi Probabilistici', 'scritto', true, false, 4, 5, 6, 90, '#B98B4A', date '2026-09-15'),
-    (uid, 'Modelli e Algoritmi per il Supporto alle Decisioni', 'Modelli e Algoritmi', 'scritto', true, false, 4, 2, 6, 80, '#4C6382', date '2027-09-30'),
-    (uid, 'Programmazione di Sistemi Mobili',      'Sistemi Mobili',     'progetto', true, true,  3, 2, 6,  80,  '#6B8CA8', date '2027-09-30'),
-    (uid, 'Reti di Telecomunicazione',             'Reti di TLC',        'scritto', true,  false, 4, 2, 9,  100, '#4C6382', date '2027-09-30'),
-    (uid, 'Sistemi Operativi',                     'Sistemi Operativi',  'scritto', true,  false, 4, 3, 9,  100, '#6B8CA8', date '2027-09-30'),
-    (uid, 'Tecnologie Internet',                   'Tecnologie Internet', 'scritto', true, false, 3, 2, 6,  70,  '#8FA9BF', date '2027-09-30');
+    (uid, 'Amministrazione di Sistemi IT e Cloud', 'Sistemi IT e Cloud', 'misto',    true,  true,  3, 2, 6,  70,  '#1E3C5A', 'cloud', date '2027-09-30'),
+    (uid, 'Applicazioni Industriali Elettriche',   'Appl. Ind. Elettriche', 'scritto', true,  false, 4, 2, 6,  90,  '#3E6E96', 'zap', date '2027-09-30'),
+    (uid, 'Architettura dei Calcolatori Elettronici', 'Architettura Calc.', 'scritto', true,  false, 4, 3, 9,  110, '#1E3C5A', 'microchip', date '2027-09-30'),
+    (uid, 'Elementi di Elettronica',               'Elettronica',        'scritto', true,  false, 4, 5, 9,  100, '#E6A01E', 'cpu', date '2026-08-27'),
+    (uid, 'Fondamenti di Controlli Automatici',    'Controlli Automatici', 'scritto', true, false, 5, 2, 9,  120, '#3E6E96', 'sliders-horizontal', date '2027-09-30'),
+    (uid, 'Idoneità di Lingua Inglese B2',         'Inglese B2',         'idoneita', true, true,  2, 3, 3,  40,  '#8CBEDC', 'languages', date '2027-09-30'),
+    (uid, 'Ingegneria del Software',               'Ing. del Software',  'misto',   true,  true,  3, 2, 9,  90,  '#1E3C5A', 'git-branch', date '2027-09-30'),
+    (uid, 'Matematica Applicata',                  'Matematica Applicata', 'scritto', true, false, 5, 3, 9,  120, '#3E6E96', 'sigma', date '2027-09-30'),
+    (uid, 'Metodi Probabilistici per l''Ingegneria', 'Metodi Probabilistici', 'scritto', true, false, 4, 5, 6, 90, '#E6A01E', 'dices', date '2026-09-15'),
+    (uid, 'Modelli e Algoritmi per il Supporto alle Decisioni', 'Modelli e Algoritmi', 'scritto', true, false, 4, 2, 6, 80, '#1E3C5A', 'network', date '2027-09-30'),
+    (uid, 'Programmazione di Sistemi Mobili',      'Sistemi Mobili',     'progetto', true, true,  3, 2, 6,  80,  '#3E6E96', 'smartphone', date '2027-09-30'),
+    (uid, 'Reti di Telecomunicazione',             'Reti di TLC',        'scritto', true,  false, 4, 2, 9,  100, '#1E3C5A', 'radio-tower', date '2027-09-30'),
+    (uid, 'Sistemi Operativi',                     'Sistemi Operativi',  'scritto', true,  false, 4, 3, 9,  100, '#3E6E96', 'terminal', date '2027-09-30'),
+    (uid, 'Tecnologie Internet',                   'Tecnologie Internet', 'scritto', true, false, 3, 2, 6,  70,  '#8CBEDC', 'globe', date '2027-09-30');
 
   -- ------------------------------------------------------------ prerequisiti
   insert into public.exam_dependencies (user_id, exam_id, depends_on_exam_id, strength)

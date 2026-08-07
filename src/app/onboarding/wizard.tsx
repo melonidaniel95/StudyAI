@@ -2,8 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { AlertCircle, ArrowLeft, ArrowRight, CalendarClock, Check, GraduationCap, Sparkles } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ArrowRight, CalendarClock, Check, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { Logo } from '@/components/layout/logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -96,11 +97,9 @@ export function OnboardingWizard({ defaultName }: { defaultName: string }) {
     <div className="space-y-6">
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <GraduationCap className="h-5 w-5" aria-hidden />
-          </span>
+          <Logo size={38} />
           <div>
-            <h1 className="text-xl font-semibold">Configuriamo StudyOS</h1>
+            <h1 className="text-xl font-semibold">Configuriamo StudyAI</h1>
             <p className="text-sm text-muted-foreground">
               Passo {step} di {TOTAL_STEPS} — meno di due minuti.
             </p>
@@ -141,7 +140,7 @@ export function OnboardingWizard({ defaultName }: { defaultName: string }) {
           <CardHeader>
             <CardTitle>Quanto tempo hai davvero</CardTitle>
             <CardDescription>
-              Indica il tempo realistico, non quello ideale. StudyOS ne lascia comunque il 15% libero
+              Indica il tempo realistico, non quello ideale. StudyAI ne lascia comunque il 15% libero
               come margine.
             </CardDescription>
           </CardHeader>

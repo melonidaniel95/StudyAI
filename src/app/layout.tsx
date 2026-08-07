@@ -6,14 +6,14 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: 'StudyOS — il tuo sistema di studio',
-    template: '%s · StudyOS',
+    default: 'StudyAI — il tuo sistema di studio',
+    template: '%s · StudyAI',
   },
   description:
-    'StudyOS organizza esami, appelli, programmi, ripassi ed esercizi e ti dice ogni giorno che cosa studiare e come verificare di averlo imparato.',
+    'StudyAI organizza esami, appelli, programmi, ripassi ed esercizi e ti dice ogni giorno che cosa studiare e come verificare di averlo imparato.',
   manifest: '/manifest.webmanifest',
-  applicationName: 'StudyOS',
-  appleWebApp: { capable: true, title: 'StudyOS', statusBarStyle: 'default' },
+  applicationName: 'StudyAI',
+  appleWebApp: { capable: true, title: 'StudyAI', statusBarStyle: 'default' },
   formatDetection: { telephone: false },
 };
 
@@ -30,7 +30,14 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="it" suppressHydrationWarning>
-      <body>
+      {/*
+        suppressHydrationWarning sul body: le estensioni del browser (ColorZilla,
+        gestori di password, traduttori) aggiungono attributi al body prima che
+        React si carichi. Non è codice nostro e non possiamo evitarlo, quindi si
+        dice a React di ignorare le differenze su questo singolo elemento.
+        Il contenuto interno resta comunque controllato normalmente.
+      */}
+      <body suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TooltipProvider delayDuration={200}>
             <a

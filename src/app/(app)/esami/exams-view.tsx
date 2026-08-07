@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ReadinessBar } from '@/components/shared/readiness-bar';
 import { RiskBadge } from '@/components/shared/risk-badge';
 import { DependencyGraph } from '@/components/exams/dependency-graph';
+import { ExamIcon } from '@/lib/exam-icons';
 import { SessionCalendar } from '@/components/exams/session-calendar';
 import { formatMinutes, formatShortDate, relativeDayLabel } from '@/lib/domain/dates';
 import type { ExamStatus, IsoDate, RiskLevel, ScoreComponent } from '@/lib/domain/types';
@@ -20,6 +21,8 @@ export interface ExamCardData {
   name: string;
   shortName: string;
   color: string;
+  icon: string;
+  hasMaterial: boolean;
   status: ExamStatus;
   kind: string;
   difficulty: number;
@@ -239,10 +242,11 @@ export function ExamsView({
                       <Link href={`/esami/${exam.id}`} className="hover:underline">
                         <span className="flex items-center gap-2">
                           <span
-                            className="h-2.5 w-2.5 shrink-0 rounded-full"
-                            style={{ backgroundColor: exam.color }}
-                            aria-hidden
-                          />
+                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md"
+                            style={{ backgroundColor: `${exam.color}1A` }}
+                          >
+                            <ExamIcon icon={exam.icon} color={exam.color} size={16} />
+                          </span>
                           {exam.shortName}
                         </span>
                       </Link>
@@ -259,6 +263,11 @@ export function ExamsView({
                       <Badge variant="muted">{STATUS_LABELS[exam.status]}</Badge>
                       <Badge variant="secondary">Difficoltà {exam.difficulty}/5</Badge>
                       {exam.cfu ? <Badge variant="muted">{exam.cfu} CFU</Badge> : null}
+                      {!exam.hasMaterial ? (
+                        <Badge variant="accent" title="Senza materiale l’esame non entra nel piano">
+                          Materiale mancante
+                        </Badge>
+                      ) : null}
                       {exam.syllabusIsDraft && exam.topicCount > 0 ? (
                         <Badge variant="accent">Programma da verificare</Badge>
                       ) : null}
@@ -313,7 +322,11 @@ export function ExamsView({
                 {filtered.map((exam) => (
                   <tr key={exam.id} className="border-t">
                     <td className="p-3">
-                      <Link href={`/esami/${exam.id}`} className="font-medium hover:underline">
+                      <Link
+                        href={`/esami/${exam.id}`}
+                        className="flex items-center gap-2 font-medium hover:underline"
+                      >
+                        <ExamIcon icon={exam.icon} color={exam.color} size={16} />
                         {exam.shortName}
                       </Link>
                     </td>

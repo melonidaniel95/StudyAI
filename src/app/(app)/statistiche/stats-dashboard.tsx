@@ -116,7 +116,7 @@ export function StatsDashboard({
       {summary.estimateAccuracyMinutes !== null ? (
         <p className="rounded-md bg-muted/50 p-3 text-sm text-muted-foreground">
           In media le tue sessioni durano {Math.round(summary.estimateAccuracyMinutes)} minuti in più
-          o in meno rispetto alla stima. StudyOS usa questo scarto per rendere il piano più realistico.
+          o in meno rispetto alla stima. StudyAI usa questo scarto per rendere il piano più realistico.
         </p>
       ) : null}
 

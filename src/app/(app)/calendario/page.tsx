@@ -36,7 +36,11 @@ export default async function CalendarPage() {
   const examMap = Object.fromEntries(
     overviews.map((overview) => [
       overview.exam.id,
-      { name: overview.exam.short_name ?? overview.exam.name, color: overview.exam.color },
+      {
+        name: overview.exam.short_name ?? overview.exam.name,
+        color: overview.exam.color,
+        icon: overview.exam.icon ?? 'book-open',
+      },
     ]),
   );
 
