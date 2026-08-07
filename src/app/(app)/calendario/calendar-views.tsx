@@ -68,6 +68,19 @@ export function CalendarViews({
   const [, startTransition] = useTransition();
   const [anchor, setAnchor] = useState<IsoDate>(today);
   const [dragged, setDragged] = useState<string | null>(null);
+  /*
+   * Per impostazione predefinita compaiono solo gli appelli che hai scelto
+   * (principale e riserva): mostrarli tutti riempie il calendario di date
+   * che non stai preparando. L'elenco completo resta a un clic di distanza,
+   * utile quando devi decidere quale appello selezionare.
+   */
+  const [mostraTuttiGliAppelli, setMostraTuttiGliAppelli] = useState(false);
+
+  const appelliVisibili = useMemo(
+    () => (mostraTuttiGliAppelli ? examDates : examDates.filter((item) => item.role !== 'nessuno')),
+    [examDates, mostraTuttiGliAppelli],
+  );
+  const appelliNascosti = examDates.length - appelliVisibili.length;
 
   const tasksByDate = useMemo(() => {
     const map = new Map<IsoDate, CalendarTask[]>();
@@ -81,13 +94,13 @@ export function CalendarViews({
 
   const examsByDate = useMemo(() => {
     const map = new Map<IsoDate, ExamDate[]>();
-    for (const item of examDates) {
+    for (const item of appelliVisibili) {
       const list = map.get(item.date) ?? [];
       list.push(item);
       map.set(item.date, list);
     }
     return map;
-  }, [examDates]);
+  }, [appelliVisibili]);
 
   const reviewsByDate = useMemo(() => {
     const map = new Map<IsoDate, ReviewDate[]>();
@@ -204,7 +217,18 @@ export function CalendarViews({
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
         </TabsList>
 
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              className="h-4 w-4"
+              checked={mostraTuttiGliAppelli}
+              onChange={(event) => setMostraTuttiGliAppelli(event.target.checked)}
+            />
+            {mostraTuttiGliAppelli
+              ? 'Tutti gli appelli'
+              : `Solo appelli scelti${appelliNascosti > 0 ? ` (${appelliNascosti} nascosti)` : ''}`}
+          </label>
           <Button
             variant="outline"
             size="icon"
@@ -273,7 +297,7 @@ export function CalendarViews({
               {daysBetween(today, targetDate)} giorni.
             </p>
             <ol className="space-y-2">
-              {examDates
+              {appelliVisibili
                 .filter((item) => item.date >= today)
                 .sort((a, b) => a.date.localeCompare(b.date))
                 .map((item) => (
