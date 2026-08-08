@@ -31,11 +31,26 @@ function revalidateAll() {
   for (const path of REVALIDATE) revalidatePath(path);
 }
 
+export interface GeneratePlanOptions {
+  /**
+   * Rigenerazione pulita: elimina TUTTE le attività non completate, comprese
+   * quelle bloccate a mano e quelle passate rimaste in sospeso, poi ricostruisce
+   * il piano da oggi. Serve quando il piano si è sporcato con residui di
+   * generazioni precedenti. Le sessioni già svolte non vengono mai toccate.
+   */
+  reset?: boolean;
+}
+
 /**
  * Rigenera il piano automatico a partire dallo stato reale dello studio.
- * Le attività già completate e quelle bloccate a mano non vengono toccate.
+ *
+ * Modalità normale: sostituisce solo le attività future ancora da fare e non
+ * bloccate, così le tue modifiche manuali e gli arretrati restano.
+ * Modalità `reset`: fa piazza pulita di tutto ciò che non è stato completato.
  */
-export async function generatePlanAction(): Promise<PlanResult> {
+export async function generatePlanAction(
+  options: GeneratePlanOptions = {},
+): Promise<PlanResult> {
   const user = await requireUser();
   const supabase = await createClient();
 
@@ -200,14 +215,34 @@ export async function generatePlanAction(): Promise<PlanResult> {
     planId = (created as { id: string } | null)?.id ?? null;
   }
 
-  // Rimuove solo le attività future ancora pianificate e non bloccate a mano.
-  await supabase
-    .from('study_tasks')
-    .delete()
-    .eq('user_id', user.id)
-    .eq('status', 'pianificata')
-    .eq('is_locked', false)
-    .gte('scheduled_date', today);
+  /*
+   * Pulizia prima di ricostruire.
+   *
+   * Normale: solo le attività future ancora pianificate e non bloccate, così
+   * restano le modifiche manuali e gli arretrati da recuperare.
+   *
+   * Reset: tutto ciò che non è stato completato, a qualunque data e anche se
+   * bloccato. È l'unico modo per eliminare i residui delle generazioni passate,
+   * che altrimenti si accumulano e sembrano duplicati.
+   */
+  let rimosse = 0;
+  if (options.reset) {
+    const { count } = await supabase
+      .from('study_tasks')
+      .delete({ count: 'exact' })
+      .eq('user_id', user.id)
+      .neq('status', 'completata');
+    rimosse = count ?? 0;
+  } else {
+    const { count } = await supabase
+      .from('study_tasks')
+      .delete({ count: 'exact' })
+      .eq('user_id', user.id)
+      .eq('status', 'pianificata')
+      .eq('is_locked', false)
+      .gte('scheduled_date', today);
+    rimosse = count ?? 0;
+  }
 
   const rows = plan.tasks.map((task) => ({
     user_id: user.id,
@@ -250,11 +285,16 @@ export async function generatePlanAction(): Promise<PlanResult> {
     );
   }
 
+  const dettaglioPulizia =
+    options.reset && rimosse > 0
+      ? ` ${rimosse} attività precedenti rimosse; le sessioni già svolte sono state conservate.`
+      : '';
+
   return {
     ok: true,
     created: rows.length,
     warnings,
-    message: `Piano aggiornato: ${rows.length} attività su ${examsWithMaterial.size} ${examsWithMaterial.size === 1 ? 'materia' : 'materie'} nei prossimi ${horizon} giorni.`,
+    message: `Piano ricostruito da oggi: ${rows.length} attività su ${examsWithMaterial.size} ${examsWithMaterial.size === 1 ? 'materia' : 'materie'} nei prossimi ${horizon} giorni.${dettaglioPulizia}`,
   };
 }
 

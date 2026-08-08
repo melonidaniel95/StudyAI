@@ -86,7 +86,7 @@ export async function completeOnboardingAction(formData: FormData): Promise<Onbo
     return { ok: false, message: 'Non è stato possibile salvare la disponibilità settimanale.' };
   }
 
-  const plan = await generatePlanAction();
+  const plan = await generatePlanAction({ reset: true });
 
   revalidatePath('/', 'layout');
 
