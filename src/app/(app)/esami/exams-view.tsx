@@ -11,6 +11,8 @@ import { ReadinessBar } from '@/components/shared/readiness-bar';
 import { RiskBadge } from '@/components/shared/risk-badge';
 import { DependencyGraph } from '@/components/exams/dependency-graph';
 import { ExamIcon } from '@/lib/exam-icons';
+import { ExamSignalChips, ExamSignalsLegend, URGENCY_BAR } from '@/components/exams/exam-signals';
+import { urgencyFromDaysRemaining } from '@/lib/domain/exam-signals';
 import { SessionCalendar } from '@/components/exams/session-calendar';
 import { formatMinutes, formatShortDate, relativeDayLabel } from '@/lib/domain/dates';
 import type { ExamStatus, IsoDate, RiskLevel, ScoreComponent } from '@/lib/domain/types';
@@ -159,6 +161,8 @@ export function ExamsView({
         </div>
       ) : null}
 
+      <ExamSignalsLegend />
+
       <div className="flex flex-wrap items-end gap-3">
         <label className="text-sm">
           <span className="mb-1 block font-medium">Stato</span>
@@ -236,7 +240,14 @@ export function ExamsView({
           <ul className="grid gap-4 md:grid-cols-2">
             {filtered.map((exam) => (
               <li key={exam.id}>
-                <Card className="h-full">
+                <Card className="relative h-full overflow-hidden pl-1.5">
+                  {/* Barra di urgenza: il primo segnale che si coglie. */}
+                  <span
+                    className={`absolute inset-y-0 left-0 w-1.5 ${
+                      URGENCY_BAR[urgencyFromDaysRemaining(exam.daysRemaining).level]
+                    }`}
+                    aria-hidden
+                  />
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-start justify-between gap-2">
                       <Link href={`/esami/${exam.id}`} className="hover:underline">
@@ -254,6 +265,11 @@ export function ExamsView({
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
+                    <ExamSignalChips
+                      hasMaterial={exam.hasMaterial}
+                      hasBookedSession={exam.primaryDate !== null}
+                      daysRemaining={exam.daysRemaining}
+                    />
                     <ReadinessBar
                       value={exam.readiness}
                       components={exam.readinessComponents}
@@ -263,11 +279,6 @@ export function ExamsView({
                       <Badge variant="muted">{STATUS_LABELS[exam.status]}</Badge>
                       <Badge variant="secondary">Difficoltà {exam.difficulty}/5</Badge>
                       {exam.cfu ? <Badge variant="muted">{exam.cfu} CFU</Badge> : null}
-                      {!exam.hasMaterial ? (
-                        <Badge variant="accent" title="Senza materiale l’esame non entra nel piano">
-                          Materiale mancante
-                        </Badge>
-                      ) : null}
                       {exam.syllabusIsDraft && exam.topicCount > 0 ? (
                         <Badge variant="accent">Programma da verificare</Badge>
                       ) : null}
@@ -314,6 +325,7 @@ export function ExamsView({
                   <th scope="col" className="p-3 font-medium">Stato</th>
                   <th scope="col" className="p-3 font-medium">Appello</th>
                   <th scope="col" className="p-3 font-medium">Preparazione</th>
+                  <th scope="col" className="p-3 font-medium">Stato</th>
                   <th scope="col" className="p-3 font-medium">Rischio</th>
                   <th scope="col" className="p-3 font-medium">Ore rimanenti</th>
                 </tr>
@@ -326,6 +338,12 @@ export function ExamsView({
                         href={`/esami/${exam.id}`}
                         className="flex items-center gap-2 font-medium hover:underline"
                       >
+                        <span
+                          className={`h-6 w-1 shrink-0 rounded-full ${
+                            URGENCY_BAR[urgencyFromDaysRemaining(exam.daysRemaining).level]
+                          }`}
+                          aria-hidden
+                        />
                         <ExamIcon icon={exam.icon} color={exam.color} size={16} />
                         {exam.shortName}
                       </Link>
@@ -335,6 +353,14 @@ export function ExamsView({
                       {exam.primaryDate ? formatShortDate(exam.primaryDate) : '—'}
                     </td>
                     <td className="p-3 tabular-nums">{percent(exam.readiness)}%</td>
+                    <td className="p-3">
+                      <ExamSignalChips
+                        hasMaterial={exam.hasMaterial}
+                        hasBookedSession={exam.primaryDate !== null}
+                        daysRemaining={exam.daysRemaining}
+                        compact
+                      />
+                    </td>
                     <td className="p-3">
                       <RiskBadge risk={exam.risk} compact />
                     </td>
